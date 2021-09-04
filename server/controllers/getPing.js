@@ -1,3 +1,3 @@
 module.exports = (req, res) => {
-  res.status(200).json('ping');
+  res.status(200).json({ success: true });
 };
