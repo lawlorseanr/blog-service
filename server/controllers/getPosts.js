@@ -1,7 +1,20 @@
 const Endpoint = require('../lib/Endpoint');
+const axios = require('axios');
 
 const sortByAllowed = ['id', 'reads', 'likes', 'popularity'];
 const directionAllowed = ['asc', 'desc'];
+
+const directionFn = [(a, b) => a < b, (a, b) => a > b];
+
+const sortFn = (a, b, fn) => {
+  if (a === b) {
+    return 0;
+  }
+  if (fn(a, b)) {
+    return -1;
+  }
+  return 1;
+};
 
 const checkSortBy = (sortBy) => {
   if (sortBy === undefined) {
@@ -15,28 +28,48 @@ const checkSortBy = (sortBy) => {
 
 const checkDirection = (direction) => {
   if (direction === undefined) {
-    return directionAllowed[0];
+    return directionFn[0];
   }
-  if (typeof direction === 'string' && directionAllowed.indexOf(direction) >= 0) {
-    return direction;
+  const directionIndex = directionAllowed.indexOf(direction);
+  if (typeof direction === 'string' && directionIndex >= 0) {
+    return directionFn[directionIndex];
   }
   return false;
 };
 
 module.exports = (req, res) => {
-  const params = req.params;
+  const { query } = req;
 
-  if (params.tags && params.tags.length > 0) {
-    const tags = params.tags;
+  if (query.tags && query.tags.length > 0) {
+    const { tags } = query;
 
-    const sortBy = checkSortBy(params.sortBy);
-    const direction = checkDirection(params.direction);
+    const sortBy = checkSortBy(query.sortBy);
+    const direction = checkDirection(query.direction);
     if (!sortBy) {
       res.status(400).json({ error: 'sortBy parameter in invalid' });
     } else if (!direction) {
       res.status(400).json({ error: 'direction parameter is invalid' });
     } else {
-      res.status(200).json({ success: true });
+      const tagList = tags.split(',');
+      const tagRequests = tagList.map((tag) => Endpoint.get(`/blog/posts?tag=${tag}`)
+        .then((response) => response.data.posts));
+
+      Promise.all(tagRequests)
+        .then((responses) => {
+          const postList = [];
+          responses.forEach((response) => {
+            response.forEach((post) => {
+              postList.push(post);
+            });
+          });
+
+          const sortedPosts = postList.sort((a, b) => sortFn(a[sortBy], b[sortBy], direction));
+
+          res.status(200).json({ posts: sortedPosts });
+        })
+        .catch((error) => {
+          res.status(400).json({ error });
+        });
     }
   } else {
     res.status(400).json({ error: 'Tags parameter is required' });
