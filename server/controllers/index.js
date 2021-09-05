@@ -1,4 +1,7 @@
-const getPing = require('./getPing');
-const getPosts = require('./getPosts');
+const ping = require('./getPing');
+const posts = require('./getPosts');
 
-module.exports = { getPing, getPosts };
+module.exports = {
+  ping,
+  posts,
+};

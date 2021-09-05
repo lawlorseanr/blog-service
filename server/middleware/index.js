@@ -1,7 +1,7 @@
-const squawk = require('./squawk');
-const cache = require('./redis');
+const ping = require('./ping');
+const posts = require('./posts');
 
-module.exports = [
-  squawk,
-  cache,
-];
+module.exports = {
+  ping,
+  posts,
+};
