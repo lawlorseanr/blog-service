@@ -2,7 +2,7 @@ const Endpoint = require('../../lib/Endpoint');
 
 const URL = (tag) => `/blog/posts?tag=${tag}`;
 
-module.exports = (req, res) => {
+module.exports = (req, res, next) => {
   const { tagList } = req.query;
   const { posts } = res.body;
 
@@ -21,10 +21,7 @@ module.exports = (req, res) => {
 
   Promise.all(tagRequests)
     .then((responses) => {
-      const output = responses[0];
-      console.log({ output });
-      const postList = [];
-      res.body.posts = postList;
+      [res.body.posts, ...rest] = responses;
       next();
     })
     .catch((error) => {
