@@ -7,25 +7,18 @@ client.on('error', (error) => console.error(error));
 const getAsync = promisify(client.get).bind(client);
 const setAsync = promisify(client.set).bind(client);
 
-const cacheCB = (key, value) => {
-  setAsync(key, value);
-  next();
-};
-
 module.exports = (req, res, next) => {
   const { tagList } = req.query;
-  res.cacheCB = cacheCB;
-  res.body = { posts: [] };
-  posts = [];
+  res.getCache = getAsync;
+  res.setCache = setAsync;
 
-  const posts = tagList.map((tag, i) => getAsync(tag));
+  res.body = { posts: [] };
+  const posts = tagList.map((tag) => getAsync(tag));
 
   Promise.all(posts)
-    .then(())
-  tagList.forEach((tag) => {
-    client.get(tag, (error, cache) => {
-      posts.push(cache);
-    });
-  });
-  next();
+    .then((cachedPosts) => {
+      res.body.posts = cachedPosts;
+      next();
+    })
+    .catch((error) => res.status(500).json(error));
 };

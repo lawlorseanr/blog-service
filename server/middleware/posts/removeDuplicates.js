@@ -8,5 +8,6 @@ module.exports = (req, res, next) => {
     }
     return accumulator;
   }, []);
+  console.log({ posts: res.body.posts });
   next();
 };
