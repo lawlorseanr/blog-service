@@ -9,6 +9,8 @@ const TAGS_ERROR = { error: 'Tags parameter is required' };
 const SORT_ERROR = { error: 'sortBy parameter in invalid' };
 const DIRECTION_ERROR = { error: 'direction parameter is invalid' };
 
+const api = require('./testapi');
+
 /* ================================
     GET /api/ping
 ================================ */
